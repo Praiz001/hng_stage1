@@ -22,7 +22,7 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone <https://github.com/Praiz001/hng_stage0>
+git clone https://github.com/Praiz001/hng_stage0
 cd stage_0
 ```
 
@@ -119,7 +119,7 @@ curl http://localhost:4000/me
 ## 🌐 CORS Configuration
 
 CORS is configured to allow requests from:
-- `http://localhost:3000` (default)
+- `*` (default)
 - Custom origin via `CORS_ORIGIN` environment variable
 
 ## 🧪 Testing the API
