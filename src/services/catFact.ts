@@ -2,18 +2,13 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const TIMEOUT = process.env.TIMEOUT || 5000;
-const url = process.env.CAT_FACT_API_URL;
+const TIMEOUT = process.env.API_TIMEOUT || 5000;
+const url = process.env.CAT_FACT_API_URL || 'https://catfact.ninja/fact';
 const getCatFact = async () => {
 
     try {
-  
-        if (url) {
-            const response = await axios.get(url, { timeout: Number(TIMEOUT) });
-            return response.data.fact;
-        } else {
-            throw new Error('CAT_FACT_URL is not set');
-        }
+        const response = await axios.get(url, { timeout: Number(TIMEOUT) });
+        return response.data.fact;
 
     } catch (error) {
         console.error('Error getting cat fact:', error);
