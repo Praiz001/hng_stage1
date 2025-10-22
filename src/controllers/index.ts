@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { checkStringExists, deleteString, getAllStrings, getString, saveString } from "../services";
 import { errorResponse, successResponse } from "../helpers/responseHandler";
 import { HttpStatusCode } from "axios";
-import { checkForConflict, naturalLanguageQueryBuilder } from "../utils/stringAnalyzer";
+import { checkForConflict, naturalLanguageQueryParser } from "../utils/stringAnalyzer";
 import Joi from "joi";
 import { validateSchema } from "../helpers/validation";
 import { AnalyzedStringsFilter } from "../models/stringAnalyzer";
@@ -159,7 +159,7 @@ const filterByNaturalLanguage = async (req: Request, res: Response) => {
                 .json(errorResponse("Invalid query parameter values or types"));
         }
 
-        const extractedQuery = naturalLanguageQueryBuilder(query.query as string); //parse query param into filter object
+        const extractedQuery = naturalLanguageQueryParser(query.query as string); //parse query param into filter object
 
         if (!extractedQuery) { //unable to parse query param
             return res.status(HttpStatusCode.BadRequest).json(errorResponse("Unable to parse natural language query"));

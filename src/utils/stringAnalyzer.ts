@@ -24,7 +24,7 @@ export const getCharFrequencyMap = (content: string) => { //get frequency of eac
     }, {} as Record<string, number>);
 }
 
-export const naturalLanguageQueryBuilder = (naturalLanguageQuery: string) => {
+export const naturalLanguageQueryParser = (naturalLanguageQuery: string) => {
     let query: AnalyzedStringsFilter[] = [];
 
     if (naturalLanguageQuery.includes('single word palindromic')) {
@@ -43,7 +43,7 @@ export const naturalLanguageQueryBuilder = (naturalLanguageQuery: string) => {
         query.push({ contains_character: 'z' });
     }
 
-    // Return null only if no conditions matched
+    // Return null if no conditions matched
     return query.length > 0 ? query : null;
 }
 
