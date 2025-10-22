@@ -27,7 +27,7 @@ A REST API for analyzing and querying strings with in-memory storage. Supports v
 ### 1) Clone and install
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Praiz001/hng_stage1/
 cd stage_1
 npm install
 ```
@@ -41,7 +41,7 @@ Create a `.env` file in the project root:
 PORT=4000
 CORS_ORIGIN=*
 
-# Optional (if you later enable DB)
+# Optional
 # DATABASE_URL=postgres://user:password@host:5432/dbname
 ```
 
@@ -120,7 +120,8 @@ Base URL: `http://localhost:${PORT}` (default 4000)
   - `palindromic strings that contain the first vowel`
   - `containing the letter z`
 
-- **Conflicts result in:** 400 Bad Request
+- **Conflicts result in:**  422 Unprocessable Entity
+- **Unable to parse query result in:**  400 Bad Request
 
 ### 5) Delete a string by value
 
