@@ -1,147 +1,183 @@
-# Profile API with Cat Facts
+# HNG Stage 1 – String Analyzer API
 
-A simple RESTful API that returns my profile information along with dynamic cat facts fetched from an external API. Built with Node.js, Express, and TypeScript.
+A REST API for analyzing and querying strings with in-memory storage. Supports validation, filtering, and natural-language-style filters.
 
-## 🚀 Features
+## Features
 
-- **GET /me** endpoint that returns profile information
-- Dynamic cat facts from [Cat Facts API](https://catfact.ninja/fact)
-- Real-time UTC timestamps in ISO 8601 format
-- Graceful error handling with fallback responses
-- CORS enabled for cross-origin requests
-- TypeScript for type safety
+- Analyze and store strings (palindrome, length, word count, SHA-256, frequency map)
+- Get a single string by value
+- List and filter all strings via query params
+- Natural language filter parsing (e.g., "single word palindromic")
 
-## 📋 Prerequisites
+## Tech Stack
 
-Before you begin, ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (version 16 or higher)
-- [npm](https://www.npmjs.com/)
-- [Git](https://git-scm.com/)
+- Node.js, Express, TypeScript
+- Joi (validation)
+- CORS
+- Knex + pg (prepared, optional; currently not used)
+- Axios (HTTP helper, optional)
 
-## 🛠️ Installation & Setup
+## Requirements
 
-### 1. Clone the Repository
+- Node.js 18+ (recommended)
+- npm 9+
+
+## Setup
+
+### 1) Clone and install
+
 ```bash
-git clone https://github.com/Praiz001/hng_stage0
-cd stage_0
-```
-
-### 2. Install Dependencies
-```bash
+git clone <your-repo-url>
+cd stage_1
 npm install
 ```
 
-### 3. Environment Variables
-Create a `.env` file in the root directory:
-```env
-# Server Configuration
-PORT=4000
-NODE_ENV=development
+### 2) Environment variables
 
-# Cat Facts API Configuration
-CAT_FACT_API_URL=https://catfact.ninja/fact
-TIMEOUT=5000
+Create a `.env` file in the project root:
 
-# CORS Configuration (optional)
-CORS_ORIGIN=http://localhost:3000
-```
-
-### 4. Build the Project (Optional)
 ```bash
-npm run build
+# Server
+PORT=4000
+CORS_ORIGIN=*
+
+# Optional (if you later enable DB)
+# DATABASE_URL=postgres://user:password@host:5432/dbname
 ```
 
-## 🏃‍♂️ Running the Application
+### 3) Run locally
 
-### Development Mode
+- **Dev (watch):**
 ```bash
 npm run dev
 ```
-This will start the server with hot reload using nodemon.
 
-### Production Mode
+- **Build and start:**
 ```bash
 npm run build
 npm start
 ```
 
-The server will start on `http://localhost:4000` (or the PORT specified in your .env file).
+Server runs on http://localhost:4000 by default.
 
-## 📡 API Endpoints
+## Scripts
 
-### GET /me
-Returns profile information with a random cat fact.
+- `npm run dev`: Start with nodemon (ts-node)
+- `npm run build`: Compile TypeScript to `dist/`
+- `npm start`: Run compiled server from `dist/`
+- `npm run migrate`: Run Knex migrations (if DB is enabled)
 
-**Request:**
-```bash
-curl http://localhost:4000/me
-```
+## API
 
-**Response:**
+Base URL: `http://localhost:${PORT}` (default 4000)
+
+### 1) Analyze and store a string
+
+**POST** `/strings`
+
+- **Body:**
 ```json
-{
-  "status": "success",
-  "user": {
-    "email": "oshilimpraisek@gmail.com",
-    "name": "Praise Oshilim",
-    "stack": "Node.js/Express"
-  },
-  "timestamp": "2025-01-27T10:30:45.123Z",
-  "fact": "Cats have a third eyelid called a haw to protect their eyes."
-}
+{ "value": "racecar" }
 ```
 
-## 📦 Dependencies
+- **Success:** 201 Created
+- **Errors:**
+  - 400 Bad Request: Invalid request body or missing "value" field
+  - 422 Unprocessable Entity: Invalid data type for "value" (must be string)
 
-### Production Dependencies
-- **express** (^5.1.0) - Web framework for Node.js
-- **axios** (^1.12.2) - HTTP client for API requests
-- **cors** (^2.8.5) - Cross-Origin Resource Sharing middleware
-- **dotenv** (^17.2.3) - Environment variable loader
-- **knex** (^3.1.0) - SQL query builder
-- **pg** (^8.16.3) - PostgreSQL client
+### 2) Get a string by value
 
-### Development Dependencies
-- **typescript** (^5.9.3) - TypeScript compiler
-- **ts-node** (^10.9.2) - TypeScript execution for Node.js
-- **nodemon** (^3.1.10) - Development server with auto-restart
-- **@types/express** (^5.0.3) - TypeScript definitions for Express
-- **@types/cors** (^2.8.19) - TypeScript definitions for CORS
-- **@types/node** (^24.8.0) - TypeScript definitions for Node.js
+**GET** `/strings/:string_value`
 
-## 🔧 Available Scripts
+- **Example:** `/strings/racecar`
+- **Success:** 200 OK
+- **Errors:**
+  - 400 Bad Request (if param is not a string)
+  - 404 Not Found
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Compile TypeScript to JavaScript
-- `npm start` - Start production server
-- `npm run migrate` - Run database migrations
+### 3) Get all strings with filtering
 
-## 🌐 CORS Configuration
+**GET** `/strings?is_palindrome=true&min_length=5&max_length=20&word_count=2&contains_character=a`
 
-CORS is configured to allow requests from:
-- `*` (default)
-- Custom origin via `CORS_ORIGIN` environment variable
+- **Query params:**
+  - `is_palindrome`: boolean (true/false)
+  - `min_length`: integer
+  - `max_length`: integer
+  - `word_count`: integer
+  - `contains_character`: string (1 char)
 
-## 🧪 Testing the API
+- **Success:** 200 OK
+- **Empty:** 204 No Content (returns `{ data: [] }`)
+- **Error:** 400 Bad Request (invalid parameter values or unexpected parameters)
 
-You can test the API using:
+### 4) Filter by natural language
 
-**curl:**
+**GET** `/strings/filter-by-natural-language?query=single%20word%20palindromic%20strings`
+
+- **Examples that should parse:**
+  - `single word palindromic`
+  - `longer than 10 characters`
+  - `palindromic strings that contain the first vowel`
+  - `containing the letter z`
+
+- **Conflicts result in:** 400 Bad Request
+
+### 5) Delete a string by value
+
+**DELETE** `/strings/:string_value`
+
+- **Success:** 204 No Content
+- **Errors:** 400, 404
+
+## Curl Examples
+
+- **Analyze a string:**
 ```bash
-curl -X GET http://localhost:4000/me
+curl -X POST http://localhost:4000/strings \
+  -H "Content-Type: application/json" \
+  -d '{"value":"racecar"}'
 ```
 
-**Postman:**
-- Method: GET
-- URL: `http://localhost:4000/me`
-- Headers: `Content-Type: application/json`
+- **Get by value:**
+```bash
+curl http://localhost:4000/strings/racecar
+```
 
-## 📝 Notes
+- **Filtered list:**
+```bash
+curl "http://localhost:4000/strings?is_palindrome=true&min_length=5"
+```
 
-- The timestamp updates dynamically with each request
-- A new cat fact is fetched on every request (no caching)
-- The API gracefully handles external API failures
-- All responses follow a consistent JSON structure
+- **Natural language filter:**
+```bash
+curl "http://localhost:4000/strings/filter-by-natural-language?query=single%20word%20palindromic%20strings"
+```
 
+## Dependencies
 
----
+- **Runtime:**
+  - express, cors, dotenv, joi, axios
+  - knex, pg (optional if you enable DB)
+
+- **Dev:**
+  - typescript, ts-node, nodemon
+  - @types/node, @types/express, @types/cors
+
+**Install (already in package.json):**
+```bash
+npm install
+```
+
+## Project Structure
+
+- `src/app.ts`: Express app and middleware
+- `src/server.ts`: Server bootstrap
+- `src/routes/index.ts`: Route definitions
+- `src/controllers/index.ts`: Controllers
+- `src/utils/stringAnalyzer.ts`: Utility functions and NL query parsing
+- `src/services/index.ts`: In-memory data operations
+
+## Notes
+
+- Storage is in-memory (data resets on restart)
+- Route order matters; specific routes come before parameterized ones
